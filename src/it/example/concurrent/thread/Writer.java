@@ -16,7 +16,7 @@ public class Writer extends Thread {
     public void run() {
         while (true) {
             try {
-                Thread.sleep((long) Math.random() * 1000);
+                Thread.sleep((long) (Math.random() * 1000));
                 final int element = new Random().nextInt(10) + 1;
                 queue.put(element);
 

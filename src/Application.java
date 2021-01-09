@@ -5,8 +5,8 @@ import it.example.concurrent.thread.Writer;
 public class Application {
 
     private static final int CAPACITY = 10;
-    private static final int WRITER = 10;
-    private static final int READER = 5;
+    private static final int WRITER = 20;
+    private static final int READER = 20;
 
     public static void main(String[] args) {
         // shared resource

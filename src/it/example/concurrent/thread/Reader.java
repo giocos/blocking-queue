@@ -14,7 +14,7 @@ public class Reader extends Thread {
     public void run() {
         while (true) {
             try {
-                Thread.sleep((long) Math.random() * 1000);
+                Thread.sleep((long) (Math.random() * 1000));
                 queue.take();
 
             } catch (final Exception e) {
