@@ -18,10 +18,10 @@ public class BlockingQueue<T> implements Iterable<T>, RandomAccess, Cloneable, S
     private final Condition fullCondition = lock.newCondition();
     private final Condition emptyCondition = lock.newCondition();
 
-    private int size = 0;
-    private T[] elements;
-    private boolean isFull = false;
-    private boolean isEmpty = false;
+    private volatile int size = 0;
+    private volatile T[] elements;
+    private volatile boolean isFull = false;
+    private volatile boolean isEmpty = false;
 
     public BlockingQueue() {
         elements = (T[]) new Object[DEFAULT_CAPACITY];
@@ -102,7 +102,7 @@ public class BlockingQueue<T> implements Iterable<T>, RandomAccess, Cloneable, S
             ex.printStackTrace();
         } finally {
             if (isEmpty) {
-                emptyCondition.signal();
+                emptyCondition.signalAll();
                 isEmpty = false;
             }
             lock.unlock();
@@ -136,7 +136,7 @@ public class BlockingQueue<T> implements Iterable<T>, RandomAccess, Cloneable, S
 
         } finally {
             if (isFull) {
-                fullCondition.signal();
+                fullCondition.signalAll();
                 isFull = false;
             }
             lock.unlock();
