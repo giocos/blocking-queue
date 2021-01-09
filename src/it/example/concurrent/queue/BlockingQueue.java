@@ -15,12 +15,13 @@ public class BlockingQueue<T> implements Iterable<T>, RandomAccess, Cloneable, S
     private static final int DEFAULT_CAPACITY = 1;
 
     private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
+    private final Condition fullCondition = lock.newCondition();
+    private final Condition emptyCondition = lock.newCondition();
 
     private int size = 0;
     private T[] elements;
-    private boolean putAwait = false;
-    private boolean takeAwait = false;
+    private boolean isFull = false;
+    private boolean isEmpty = false;
 
     public BlockingQueue() {
         elements = (T[]) new Object[DEFAULT_CAPACITY];
@@ -90,8 +91,8 @@ public class BlockingQueue<T> implements Iterable<T>, RandomAccess, Cloneable, S
             lock.lock();
             while (size == elements.length) {
                 System.err.println("Writer-" + Thread.currentThread().getId() + " awaiting...");
-                putAwait = true;
-                condition.await();
+                isFull = true;
+                fullCondition.await();
                 System.out.println("Writer-" + Thread.currentThread().getId() + " woke up!");
             }
             elements[size++] = e;
@@ -100,9 +101,9 @@ public class BlockingQueue<T> implements Iterable<T>, RandomAccess, Cloneable, S
         } catch (final InterruptedException ex) {
             ex.printStackTrace();
         } finally {
-            if (takeAwait) {
-                condition.signalAll();
-                takeAwait = false;
+            if (isEmpty) {
+                emptyCondition.signal();
+                isEmpty = false;
             }
             lock.unlock();
         }
@@ -117,8 +118,8 @@ public class BlockingQueue<T> implements Iterable<T>, RandomAccess, Cloneable, S
             lock.lock();
             while (size == 0) {
                 System.err.println("Reader-" + Thread.currentThread().getId() + " awaiting...");
-                takeAwait = true;
-                condition.await();
+                isEmpty = true;
+                emptyCondition.await();
                 System.out.println("Reader-" + Thread.currentThread().getId() + " woke up!");
             }
             T e = elements[HEAD];
@@ -134,9 +135,9 @@ public class BlockingQueue<T> implements Iterable<T>, RandomAccess, Cloneable, S
             return null;
 
         } finally {
-            if (putAwait) {
-                condition.signalAll();
-                putAwait = false;
+            if (isFull) {
+                fullCondition.signal();
+                isFull = false;
             }
             lock.unlock();
         }
